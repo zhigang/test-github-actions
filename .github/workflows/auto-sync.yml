@@ -1,0 +1,39 @@
+name: auto sync release
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/*.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Get Latest Release Version
+        id: get-version
+        run: |
+          git fetch --tags
+          export CURRENT=$(cat Dockerfile | sed  -n '/controller/s/.*\/controller:\(v.*\)/\1/p')
+          export LATEST=$(curl -I https://github.com/kubernetes/ingress-nginx/releases/latest | sed -n '/tag/s/.*tag\/controller.\(v.*\)/\1/p')
+          if [ "$LATEST" != "" && "$LATEST" != "$CURRENT" ]; then
+            echo "current version: $CURRENT; found new release version: $LATEST"
+            echo "::set-output name=current::$CURRENT"
+            echo "::set-output name=latest::$LATEST"
+          else
+            echo "current version: $CURRENT; not found new release version"
+            echo "::set-output name=latest::0"
+          fi
+      - name: Create New Tag
+        if: success() && steps.get-version.outputs.latest != 0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+          CURRENT: steps.get-version.outputs.current
+          LATEST: steps.get-version.outputs.latest
+        run: |
+          echo "Create New Tag From $CURRENT To $LATEST"
+          echo "$STEPS_CONTEXT"
