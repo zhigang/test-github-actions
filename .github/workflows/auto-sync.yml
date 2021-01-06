@@ -32,8 +32,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           STEPS_CONTEXT: ${{ toJson(steps) }}
-          CURRENT: steps.get-version.outputs.current
-          LATEST: steps.get-version.outputs.latest
+          CURRENT: ${{ steps.get-version.outputs.current }}
+          LATEST: ${{ steps.get-version.outputs.latest }}
         run: |
           echo "Create New Tag From $CURRENT To $LATEST"
           echo "$STEPS_CONTEXT"
