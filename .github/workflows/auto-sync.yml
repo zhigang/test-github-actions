@@ -16,7 +16,6 @@ jobs:
       - name: Get Release Version
         id: get-version
         run: |
-          git fetch --tags
           export CURRENT=$(cat Dockerfile | sed  -n '/controller/s/.*\/controller:\(v.*\)/\1/p')
           export LATEST=$(curl -sI https://github.com/kubernetes/ingress-nginx/releases/latest | sed -n '/tag/s/.*tag\/controller.\(v.*\)./\1/p')
           if [ "$LATEST" != "" ] && [ "$LATEST" != "$CURRENT" ]; then
@@ -35,8 +34,8 @@ jobs:
           LATEST: ${{ steps.get-version.outputs.latest }}
         run: |
           echo "Update Version From $CURRENT To $LATEST"
-          sed -i "s/$CURRENT/$LATEST/g;/$LATEST/a\  * $CURRENT" README.md
           sed -i "s/$CURRENT/$LATEST/g" Dockerfile
+          sed -i "s/$CURRENT/$LATEST/g;/$LATEST/a\  * $CURRENT" README.md
           git config user.email zhigang52110@sina.com
           git config user.name zhigang
           git commit -a -m "update version to $LATEST"
@@ -51,6 +50,6 @@ jobs:
           tag_name: ${{ env.LATEST }}
           release_name: ${{ env.LATEST }}
           body: |
-            update version to ${{ env.LATEST }}
+            version ${{ env.LATEST }}
           draft: false
           prerelease: false
