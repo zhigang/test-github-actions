@@ -27,13 +27,30 @@ jobs:
             echo "current version: $CURRENT; not found new release version"
             echo "::set-output name=latest::0"
           fi
-      - name: Create New Tag
+      - name: Update Version
         if: success() && steps.get-version.outputs.latest != 0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          STEPS_CONTEXT: ${{ toJson(steps) }}
           CURRENT: ${{ steps.get-version.outputs.current }}
           LATEST: ${{ steps.get-version.outputs.latest }}
         run: |
-          echo "Create New Tag From $CURRENT To $LATEST"
-          echo "$STEPS_CONTEXT"
+          echo "Update Version From $CURRENT To $LATEST"
+          sed -i "s/$CURRENT/$LATEST/g" README.md
+          sed -i "s/$CURRENT/$LATEST/g" Dockerfile
+          git config user.email zhigang52110@sina.com
+          git config user.name zhigang
+          git commit -a -m "update version to $LATEST"
+          git push
+      - name: Create New Release
+        uses: actions/create-release@v1
+        if: success() && steps.get-version.outputs.version != 0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LATEST: ${{ steps.get-version.outputs.latest }}
+        with:
+          tag_name: ${{ env.LATEST }}
+          release_name: ${{ env.LATEST }}
+          body: |
+            update version to ${{ env.LATEST }}
+          draft: false
+          prerelease: false
