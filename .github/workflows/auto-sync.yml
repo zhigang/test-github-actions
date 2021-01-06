@@ -16,7 +16,7 @@ jobs:
       - name: Get Release Version
         id: get-version
         run: |
-          export CURRENT=$(cat Dockerfile | sed  -n '/controller/s/.*\/controller:\(v.*\)/\1/p')
+          export CURRENT=$(cat Dockerfile | sed -n "/controller/s/.*\/controller.\(v.*\)/\1/p")
           export LATEST=$(curl -sI https://github.com/kubernetes/ingress-nginx/releases/latest | sed -n '/tag/s/.*tag\/controller.\(v.*\)./\1/p')
           if [ "$LATEST" != "" ] && [ "$LATEST" != "$CURRENT" ]; then
             echo "current version: $CURRENT; found new release version: $LATEST"
@@ -29,7 +29,6 @@ jobs:
       - name: Update Version
         if: success() && steps.get-version.outputs.latest != 0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CURRENT: ${{ steps.get-version.outputs.current }}
           LATEST: ${{ steps.get-version.outputs.latest }}
         run: |
@@ -42,9 +41,8 @@ jobs:
           git push
       - name: Create New Release
         uses: actions/create-release@v1
-        if: success()
+        if: success() && steps.get-version.outputs.latest != 0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LATEST: ${{ steps.get-version.outputs.latest }}
         with:
           tag_name: ${{ env.LATEST }}
