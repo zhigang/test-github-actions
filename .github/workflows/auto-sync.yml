@@ -20,12 +20,13 @@ jobs:
           git fetch --tags
           export CURRENT=$(cat Dockerfile | sed -n "/controller/s/.*\/controller.\(v.*\)/\1/p")
           export LATEST=$(curl -sI https://github.com/kubernetes/ingress-nginx/releases/latest | sed -n '/tag/s/.*tag\/controller.\(v.*\)./\1/p')
+          echo "current version: $CURRENT; latest release version: $LATEST"
           if [ "$LATEST" != "" ] && [ "$LATEST" != "$CURRENT" ]; then
-            echo "current version: $CURRENT; found new release version: $LATEST"
+            echo "found new release version"
             echo "::set-output name=current::$CURRENT"
             echo "::set-output name=latest::$LATEST"
           else
-            echo "current version: $CURRENT; not found new release version"
+            echo "new release version not found"
             echo "::set-output name=latest::0"
           fi
       - name: Update Version
