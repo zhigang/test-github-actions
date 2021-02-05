@@ -6,7 +6,7 @@ on:
     - cron:  '0 8 * * *'
   push:
     paths:
-      - '.github/workflows/*.yml'
+      - '.github/workflows/auto-sync.yml'
 
 jobs:
   build:
@@ -42,18 +42,5 @@ jobs:
           git config user.email zhigang52110@sina.com
           git config user.name zhigang
           git commit -a -m "update version to $LATEST"
-          git push
-          git pull
-      - name: Create New Release
-        uses: actions/create-release@v1
-        if: success() && steps.get-version.outputs.latest != 0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LATEST: ${{ steps.get-version.outputs.latest }}
-        with:
-          tag_name: ${{ env.LATEST }}
-          release_name: ${{ env.LATEST }}
-          body: |
-            version ${{ env.LATEST }}
-          draft: false
-          prerelease: false
+          git tag -a $LATEST -m "$LATEST"
+          git push --follow-tags
