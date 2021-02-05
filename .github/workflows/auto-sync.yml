@@ -43,6 +43,7 @@ jobs:
           git config user.name zhigang
           git commit -a -m "update version to $LATEST"
           git push
+          git pull
       - name: Create New Release
         uses: actions/create-release@v1
         if: success() && steps.get-version.outputs.latest != 0
