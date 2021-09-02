@@ -64,6 +64,8 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Push to Docker Hub
         uses: docker/build-push-action@v2
+        env:
+          LATEST: ${{ steps.get-version.outputs.latest }}
         with:
           context: .
           push: true
